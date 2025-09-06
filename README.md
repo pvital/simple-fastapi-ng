@@ -19,13 +19,19 @@ podman build \
 ## Running
 
 ```shell
-podman run -p 8000:8000 simple-fastapi:latest
+podman run -p 8000:8000 simple-fastapi:instana
+```
+
+with Instana debug enabled:
+
+```shell
+podman run --env 'INSTANA_DEBUG=True' -p 8000:8000 simple-fastapi:instana
 ```
 
 ### Local Development mode
 
 ```shell
-uv run fastapi dev main.py
+INSTANA_DEBUG=True uv run fastapi dev main.py
 ```
 
 ### Local Production mode
