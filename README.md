@@ -9,7 +9,7 @@ Simple [FastAPI] container application.
 ## Building
 
 ```shell
-podman build -f ContainerFile -t simple-fastapi:latest . 
+podman build --platform linux/amd64,linux/arm64 -f ContainerFile -t simple-fastapi:latest . 
 ```
 
 ## Running
