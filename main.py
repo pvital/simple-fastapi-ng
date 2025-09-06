@@ -1,6 +1,7 @@
 import os
 
 import httpx
+import instana  # noqa: F401
 from fastapi import FastAPI
 
 app = FastAPI()
@@ -11,7 +12,7 @@ print(pid)
 
 @app.get("/")
 def read_root():
-    return {"message": "Hello World"}
+    return {"message": "Hello from Instana World"}
 
 
 @app.get("/users/")
