@@ -42,7 +42,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 FROM public.ecr.aws/docker/library/python:3.13-slim-trixie as runtime
 
 LABEL org.opencontainers.image.source=https://github.com/pvital/simple-fastapi-ng
-LABEL org.opencontainers.image.description="Simple FastAPI container"
+LABEL org.opencontainers.image.description="Simple FastAPI container with Instana Python Tracer"
 LABEL org.opencontainers.image.licenses=MIT
 
 # Keeps Python from generating .pyc files in the container
