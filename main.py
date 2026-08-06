@@ -8,6 +8,8 @@ app = FastAPI()
 pid = os.getpid()
 print(pid)
 
+api_url = "https://jsonplaceholder.typicode.com"
+
 
 @app.get("/")
 def read_root():
@@ -17,9 +19,9 @@ def read_root():
 @app.get("/users/")
 def read_users():
     headers = {
-        "x-api-key": "reqres-free-v1",
+        "Content-type": "application/json; charset=UTF-8",
     }
-    resp = httpx.get("https://reqres.in/api/users", headers=headers)
+    resp = httpx.get(f"{api_url}/users", headers=headers)
     # print(resp)
     return resp.json()
 
@@ -27,18 +29,18 @@ def read_users():
 @app.get("/users/{user_id}")
 def read_user(user_id: int):
     headers = {
-        "x-api-key": "reqres-free-v1",
+        "Content-type": "application/json; charset=UTF-8",
     }
-    resp = httpx.get(f"https://reqres.in/api/users/{user_id}", headers=headers)
+    resp = httpx.get(f"{api_url}/users/{user_id}", headers=headers)
 
     if resp.status_code != 200:
         return
 
-    user = resp.json().get("data")
+    user = resp.json()
     return {
         "user_id": user.get("id", None),
         "email": user.get("email", None),
-        "first_name": user.get("first_name", None),
-        "last_name": user.get("last_name", None),
-        "avatar": user.get("avatar", None),
+        "name": user.get("name", None),
+        "username": user.get("username", None),
+        "website": user.get("website", None),
     }
