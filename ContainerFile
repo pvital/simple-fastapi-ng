@@ -1,4 +1,45 @@
-FROM public.ecr.aws/docker/library/python:3.13-slim
+# 
+# Build stage
+# First, build the application in the `/app` directory.
+# 
+FROM ghcr.io/astral-sh/uv:python3.13-trixie-slim AS builder
+
+# Enable bytecode compilation
+ENV UV_COMPILE_BYTECODE=1
+
+# Copy from the cache instead of linking since it's a mounted volume
+ENV UV_LINK_MODE=copy
+
+# Omit development dependencies
+ENV UV_NO_DEV=1
+
+# Ensure installed tools can be executed out of the box
+ENV UV_TOOL_BIN_DIR=/usr/local/bin
+
+# Disable Python downloads, because we want to use the system interpreter
+# across both images. If using a managed Python version, it needs to be
+# copied from the build image into the final image.
+ENV UV_PYTHON_DOWNLOADS=0
+
+WORKDIR /app
+
+# Install dependencies first
+COPY pyproject.toml uv.lock /app/
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked --no-install-project
+
+# Copy the app and install itself
+COPY . /app
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked
+
+# 
+# Runtime stage
+# 
+# It is important to use the image that matches the builder, as the path to the
+# Python executable must be the same, e.g., using `python:3.11-slim-trixie`
+# will fail.
+FROM public.ecr.aws/docker/library/python:3.13-slim-trixie as runtime
 
 LABEL org.opencontainers.image.source=https://github.com/pvital/simple-fastapi-ng
 LABEL org.opencontainers.image.description="Simple FastAPI container"
@@ -10,21 +51,21 @@ ENV PYTHONDONTWRITEBYTECODE 1
 # Turns off buffering for easier container logging
 ENV PYTHONUNBUFFERED 1
 
-# Install uv
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+# Ensure installed tools can be executed out of the box
+ENV UV_TOOL_BIN_DIR=/usr/local/bin
 
-# Copy the project into the container
-ADD . /app
+# Creates a non-root user
+RUN adduser -u 5678 --disabled-password --gecos "" appuser
+
+# Copy the application from the builder
+COPY --from=builder --chown=appuser:appuser /app /app
+
+# Place executables in the environment at the front of the path
+ENV PATH="/app/.venv/bin:$PATH"
+
 WORKDIR /app
-
-# Creates a non-root user and adds permission to access the /app folder
-RUN adduser -u 5678 --disabled-password --gecos "" appuser && chown -R appuser /app
+EXPOSE 8000
 USER appuser
 
-# Sync the project into a new environment, using the frozen lockfile
-RUN uv sync --frozen --no-cache
-
-EXPOSE 8000
-
 # Run the application
-CMD ["/app/.venv/bin/fastapi", "run", "/app/main.py", "--port", "8000", "--host", "0.0.0.0"]
+CMD ["fastapi", "run", "/app/main.py", "--port", "8000", "--host", "0.0.0.0"]
