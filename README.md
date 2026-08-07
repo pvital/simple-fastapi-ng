@@ -1,6 +1,6 @@
 # simple-fastapi-ng
 
-Simple [FastAPI] container application.
+Simple [FastAPI] container application running with [Gunicorn].
 
 ## Prerequisites
 
@@ -11,15 +11,14 @@ Simple [FastAPI] container application.
 
 ```shell
 podman build \
-    --platform linux/amd64,linux/arm64 \
     -f ContainerFile \
-    --manifest simple-fastapi:latest . 
+    -t simple-fastapi:gunicorn . 
 ```
 
 ## Running
 
 ```shell
-podman run -p 8000:8000 simple-fastapi:latest
+podman run -p 8000:8000 simple-fastapi:gunicorn
 ```
 
 ### Local Development mode
@@ -31,7 +30,7 @@ uv run fastapi dev main.py
 ### Local Production mode
 
 ```shell
-uv run fastapi run main.py --port 8000 --host 0.0.0.0
+uv run gunicorn main:app --worker-class asgi --bind 0.0.0.0:8000 --workers 4
 ```
 
 
@@ -39,3 +38,4 @@ uv run fastapi run main.py --port 8000 --host 0.0.0.0
 [OpenShift]: https://www.redhat.com/en/technologies/cloud-computing/openshift "RedHat OpenShift"
 [uv]: https://docs.astral.sh/uv/ "uv"
 [Podman]: https://podman.io/ "Podman"
+[Gunicorn]: https://gunicorn.org/ "Gunicorn"

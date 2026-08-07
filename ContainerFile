@@ -67,5 +67,14 @@ WORKDIR /app
 EXPOSE 8000
 USER appuser
 
+# Configuration via environment
+ENV GUNICORN_WORKERS=4
+ENV GUNICORN_BIND=0.0.0.0:8000
+
 # Run the application
-CMD ["fastapi", "run", "/app/main.py", "--port", "8000", "--host", "0.0.0.0"]
+CMD /app/.venv/bin/gunicorn main:app \
+    --worker-class asgi \
+    --bind ${GUNICORN_BIND} \
+    --workers ${GUNICORN_WORKERS} \
+    --graceful-timeout 30 \
+    --timeout 120
