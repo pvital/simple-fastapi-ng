@@ -28,10 +28,14 @@ COPY pyproject.toml uv.lock /app/
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-install-project
 
+# Install instana package as no project/app dependency
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install instana
+
 # Copy the app and install itself
 COPY . /app
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked
+    uv sync --locked --inexact
 
 # 
 # Runtime stage
